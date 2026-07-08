@@ -11,8 +11,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'Novel Writer',
-        short_name: 'NovelWriter',
+        name: 'InkNovel',
+        short_name: 'InkNovel',
         description: 'A mobile-first offline novel writing application.',
         theme_color: '#fcfcfc',
         background_color: '#fcfcfc',

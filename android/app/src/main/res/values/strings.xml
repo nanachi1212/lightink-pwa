@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">InkNovel</string>
+    <string name="title_activity_main">InkNovel</string>
+    <string name="package_name">com.nanachi1212.inknovel</string>
+    <string name="custom_url_scheme">com.nanachi1212.inknovel</string>
+</resources>
