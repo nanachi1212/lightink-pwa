@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useParams, useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
-import { ArrowLeft, Plus, FileText, Users, Menu } from 'lucide-react';
+import { ArrowLeft, Plus, FileText, Users, Menu, Trash2 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import { db } from '../db';
 
@@ -58,6 +58,13 @@ export default function ProjectDashboard() {
     
     // Perform a bulk update
     await db.chapters.bulkUpdate(updates);
+  };
+
+  const handleDeleteChapter = async (e: React.MouseEvent, chapterId: string, title: string) => {
+    e.stopPropagation();
+    if (window.confirm(`確定要刪除章節「${title}」嗎？此操作無法復原。`)) {
+      await db.chapters.delete(chapterId);
+    }
   };
 
   if (!project) return <div style={{ padding: '24px' }}>載入中...</div>;
@@ -140,6 +147,12 @@ export default function ProjectDashboard() {
                             </div>
                           )}
                         </div>
+                        <button 
+                          onClick={(e) => handleDeleteChapter(e, chapter.id, chapter.title)}
+                          style={{ padding: '8px', color: '#ef4444', opacity: 0.8, background: 'none', border: 'none' }}
+                        >
+                          <Trash2 size={20} />
+                        </button>
                       </div>
                     )}
                   </Draggable>

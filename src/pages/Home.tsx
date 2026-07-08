@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
-import { Plus, Book, PenTool, Settings } from 'lucide-react';
+import { Plus, Book, PenTool, Settings, Trash2 } from 'lucide-react';
 import { db } from '../db';
 
 export default function Home() {
@@ -24,6 +24,18 @@ export default function Home() {
     setNewTitle('');
     setShowNewDialog(false);
     navigate(`/project/${id}`);
+  };
+
+  const handleDeleteProject = async (e: React.MouseEvent, projectId: string, title: string) => {
+    e.stopPropagation();
+    if (window.confirm(`確定要刪除作品「${title}」嗎？此操作將會刪除所有相關章節與角色，且無法復原！`)) {
+      await db.transaction('rw', db.projects, db.chapters, db.characters, db.inspirations, async () => {
+        await db.projects.delete(projectId);
+        await db.chapters.where('projectId').equals(projectId).delete();
+        await db.characters.where('projectId').equals(projectId).delete();
+        await db.inspirations.where('projectId').equals(projectId).delete();
+      });
+    }
   };
 
   return (
@@ -58,6 +70,12 @@ export default function Home() {
                   最後更新：{new Date(proj.updatedAt).toLocaleDateString()}
                 </span>
               </div>
+              <button 
+                onClick={(e) => handleDeleteProject(e, proj.id, proj.title)}
+                style={{ padding: '8px', color: '#ef4444', opacity: 0.8, background: 'none', border: 'none' }}
+              >
+                <Trash2 size={20} />
+              </button>
             </div>
           ))}
         </div>
