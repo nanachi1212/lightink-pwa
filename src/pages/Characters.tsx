@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useParams, useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
-import { ArrowLeft, Plus, Users, X } from 'lucide-react';
+import { ArrowLeft, Plus, Users } from 'lucide-react';
 import { db, type Character } from '../db';
 
 export default function Characters() {
@@ -101,55 +101,58 @@ export default function Characters() {
 
       {showEditDialog && editingChar && (
         <div style={{
-          position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+          position: 'fixed', inset: 0, backgroundColor: 'var(--bg-color)',
+          display: 'flex', flexDirection: 'column', zIndex: 1000
         }}>
-          <div className="card" style={{ width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '18px' }}>{editingChar.id ? '編輯角色' : '新增角色'}</h2>
-              <button onClick={() => setShowEditDialog(false)}><X size={24} /></button>
+          <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <button onClick={() => setShowEditDialog(false)}><ArrowLeft size={24} /></button>
+              <h2 style={{ fontSize: '18px', margin: 0 }}>{editingChar.id ? '編輯角色' : '新增角色'}</h2>
             </div>
-            
+            <button onClick={handleSave} style={{ color: 'var(--accent-color)', fontWeight: 'bold', fontSize: '16px' }}>儲存</button>
+          </header>
+          
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>角色名稱</label>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--border-color)' }}>角色名稱</label>
               <input 
                 type="text" 
                 value={editingChar.name}
                 onChange={e => setEditingChar({...editingChar, name: e.target.value})}
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-color)' }}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)', fontSize: '16px' }}
+                placeholder="輸入角色名稱"
               />
             </div>
 
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>身份 / 稱號</label>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--border-color)' }}>身份 / 稱號</label>
               <input 
                 type="text" 
                 value={editingChar.role}
                 onChange={e => setEditingChar({...editingChar, role: e.target.value})}
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-color)' }}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)', fontSize: '16px' }}
                 placeholder="例如：主角、反派、劍士"
               />
             </div>
 
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>外貌與背景設定</label>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', marginBottom: '24px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--border-color)' }}>外貌與背景設定</label>
               <textarea 
                 value={editingChar.description}
                 onChange={e => setEditingChar({...editingChar, description: e.target.value})}
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-color)', minHeight: '120px', resize: 'vertical' }}
+                style={{ flex: 1, width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)', fontSize: '16px', minHeight: '200px', resize: 'none' }}
                 placeholder="記錄角色的外觀、性格、背景故事..."
               />
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              {editingChar.id ? (
-                <button onClick={() => handleDelete(editingChar.id as string)} style={{ color: '#ff4d4f', padding: '8px' }}>刪除</button>
-              ) : <div></div>}
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button onClick={() => setShowEditDialog(false)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>取消</button>
-                <button onClick={handleSave} style={{ padding: '8px 16px', borderRadius: '8px', backgroundColor: 'var(--accent-color)', color: 'white' }}>儲存</button>
-              </div>
-            </div>
+            {editingChar.id && (
+              <button 
+                onClick={() => handleDelete(editingChar.id as string)} 
+                style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ef4444', color: '#ef4444', width: '100%', backgroundColor: 'transparent', fontSize: '16px' }}
+              >
+                刪除角色
+              </button>
+            )}
           </div>
         </div>
       )}
