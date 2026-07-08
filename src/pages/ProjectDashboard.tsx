@@ -17,6 +17,9 @@ export default function ProjectDashboard() {
 
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [newTitle, setNewTitle] = useState('');
+  
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
 
   const handleCreateChapter = async () => {
     if (!newTitle.trim() || !id) return;
@@ -67,6 +70,13 @@ export default function ProjectDashboard() {
     }
   };
 
+  const handleEditTitleSave = async () => {
+    if (editTitle.trim() && id) {
+      await db.projects.update(id, { title: editTitle.trim(), updatedAt: Date.now() });
+    }
+    setIsEditingTitle(false);
+  };
+
   if (!project) return <div style={{ padding: '24px' }}>載入中...</div>;
 
   return (
@@ -78,7 +88,25 @@ export default function ProjectDashboard() {
         >
           <ArrowLeft size={24} />
         </button>
-        <h1 style={{ fontSize: '20px', fontWeight: 'bold' }}>{project.title}</h1>
+        {isEditingTitle ? (
+          <input
+            type="text"
+            value={editTitle}
+            onChange={(e) => setEditTitle(e.target.value)}
+            onBlur={handleEditTitleSave}
+            onKeyDown={(e) => e.key === 'Enter' && handleEditTitleSave()}
+            style={{ fontSize: '20px', fontWeight: 'bold', border: '1px solid var(--accent-color)', borderRadius: '4px', padding: '4px 8px', background: 'var(--bg-color)', color: 'var(--text-color)', width: '100%' }}
+            autoFocus
+          />
+        ) : (
+          <h1 
+            onClick={() => { setEditTitle(project.title); setIsEditingTitle(true); }}
+            style={{ fontSize: '20px', fontWeight: 'bold', cursor: 'pointer', margin: 0, padding: '4px 8px' }}
+            title="點擊修改書名"
+          >
+            {project.title}
+          </h1>
+        )}
       </header>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
