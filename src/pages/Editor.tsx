@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Settings, X } from 'lucide-react';
+import { ArrowLeft, Settings, X, Tag } from 'lucide-react';
 import { db } from '../db';
 
 // Debounce helper
@@ -22,10 +22,13 @@ export default function Editor() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [wordCount, setWordCount] = useState(0);
+  const [tags, setTags] = useState<string[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Settings
   const [showSettings, setShowSettings] = useState(false);
+  const [showTags, setShowTags] = useState(false);
+  const [newTag, setNewTag] = useState('');
   const [fontSize, setFontSize] = useState(() => {
     const saved = localStorage.getItem('editorFontSize');
     return saved ? parseInt(saved, 10) : 18;
@@ -55,6 +58,7 @@ export default function Editor() {
         setTitle(chapter.title);
         setContent(chapter.content);
         setWordCount(chapter.wordCount);
+        setTags(chapter.tags || []);
       }
       setIsLoaded(true);
     };
@@ -63,6 +67,7 @@ export default function Editor() {
 
   const debouncedContent = useDebounce(content, 1000);
   const debouncedTitle = useDebounce(title, 1000);
+  const debouncedTags = useDebounce(tags, 1000);
 
   // Auto save
   useEffect(() => {
@@ -74,13 +79,14 @@ export default function Editor() {
         title: debouncedTitle,
         content: debouncedContent,
         wordCount: currentWordCount,
+        tags: debouncedTags,
         updatedAt: Date.now()
       });
       setWordCount(currentWordCount);
     };
     
     saveToDb();
-  }, [debouncedContent, debouncedTitle, chapterId, isLoaded]);
+  }, [debouncedContent, debouncedTitle, debouncedTags, chapterId, isLoaded]);
 
   // Handle auto-indent on Enter
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -100,6 +106,17 @@ export default function Editor() {
         textarea.selectionStart = textarea.selectionEnd = start + 3; // \n + two full-width spaces
       }, 0);
     }
+  };
+
+  const handleAddTag = () => {
+    if (newTag.trim() && !tags.includes(newTag.trim())) {
+      setTags([...tags, newTag.trim()]);
+      setNewTag('');
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setTags(tags.filter(t => t !== tagToRemove));
   };
 
   if (!isLoaded) return <div style={{ padding: '24px' }}>載入中...</div>;
@@ -129,6 +146,9 @@ export default function Editor() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <span style={{ fontSize: '12px', color: 'var(--border-color)' }}>{wordCount} 字</span>
+          <button onClick={() => setShowTags(true)} style={{ padding: '4px' }}>
+            <Tag size={20} color="var(--text-color)" />
+          </button>
           <button onClick={() => setShowSettings(true)} style={{ padding: '4px' }}>
             <Settings size={20} color="var(--text-color)" />
           </button>
@@ -202,6 +222,57 @@ export default function Editor() {
                   style={{ width: '20px', height: '20px' }}
                 />
               </label>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tags Dialog */}
+      {showTags && (
+        <div style={{
+          position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex', alignItems: 'flex-end', zIndex: 1000
+        }}>
+          <div className="card" style={{ 
+            width: '100%', margin: 0, borderBottomLeftRadius: 0, borderBottomRightRadius: 0,
+            padding: '24px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '18px' }}>章節標籤</h2>
+              <button onClick={() => setShowTags(false)}><X size={24} /></button>
+            </div>
+            
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
+              {tags.map(tag => (
+                <span key={tag} style={{ 
+                  backgroundColor: 'var(--accent-color)', color: 'white', 
+                  padding: '4px 12px', borderRadius: '16px', fontSize: '14px',
+                  display: 'flex', alignItems: 'center', gap: '4px'
+                }}>
+                  {tag}
+                  <button onClick={() => handleRemoveTag(tag)} style={{ display: 'flex', color: 'white', padding: '2px' }}>
+                    <X size={14} />
+                  </button>
+                </span>
+              ))}
+              {tags.length === 0 && <span style={{ color: 'var(--border-color)', fontSize: '14px' }}>尚未新增任何標籤</span>}
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input 
+                type="text" 
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
+                placeholder="輸入新標籤..."
+                style={{ 
+                  flex: 1, padding: '12px', borderRadius: '8px', 
+                  border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-color)'
+                }}
+              />
+              <button onClick={handleAddTag} style={{ padding: '0 16px', borderRadius: '8px', backgroundColor: 'var(--accent-color)', color: 'white' }}>
+                新增
+              </button>
             </div>
           </div>
         </div>

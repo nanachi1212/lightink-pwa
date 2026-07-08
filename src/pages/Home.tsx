@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
-import { Book, Plus, PenTool } from 'lucide-react';
+import { Plus, Book, PenTool, Settings } from 'lucide-react';
 import { db } from '../db';
 
 export default function Home() {
@@ -28,9 +28,14 @@ export default function Home() {
 
   return (
     <div className="container" style={{ paddingBottom: '80px' }}>
-      <header style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
-        <Book size={28} style={{ marginRight: '12px', color: 'var(--accent-color)' }} />
-        <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>我的作品</h1>
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Book size={28} style={{ marginRight: '12px', color: 'var(--accent-color)' }} />
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>InkNovel</h1>
+        </div>
+        <button onClick={() => navigate('/settings')} style={{ color: 'var(--text-color)', padding: '8px' }}>
+          <Settings size={24} />
+        </button>
       </header>
 
       {projects?.length === 0 ? (

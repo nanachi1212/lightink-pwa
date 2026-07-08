@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useParams, useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
-import { ArrowLeft, Plus, FileText } from 'lucide-react';
+import { ArrowLeft, Plus, FileText, Users, Menu } from 'lucide-react';
+import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import { db } from '../db';
 
 export default function ProjectDashboard() {
@@ -42,6 +43,23 @@ export default function ProjectDashboard() {
     navigate(`/project/${id}/editor/${chapterId}`);
   };
 
+  const handleDragEnd = async (result: DropResult) => {
+    if (!result.destination || !chapters) return;
+    
+    const items = Array.from(chapters);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    // Update the 'order' field for all affected chapters
+    const updates = items.map((item, index) => ({
+      key: item.id,
+      changes: { order: index }
+    }));
+    
+    // Perform a bulk update
+    await db.chapters.bulkUpdate(updates);
+  };
+
   if (!project) return <div style={{ padding: '24px' }}>載入中...</div>;
 
   return (
@@ -56,8 +74,15 @@ export default function ProjectDashboard() {
         <h1 style={{ fontSize: '20px', fontWeight: 'bold' }}>{project.title}</h1>
       </header>
 
-      <div style={{ marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
         <h2 style={{ fontSize: '16px', color: 'var(--border-color)' }}>章節目錄</h2>
+        <button 
+          onClick={() => navigate(`/project/${id}/characters`)}
+          style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px', color: 'var(--accent-color)' }}
+        >
+          <Users size={16} />
+          角色設定
+        </button>
       </div>
 
       {chapters?.length === 0 ? (
@@ -66,21 +91,64 @@ export default function ProjectDashboard() {
           <p>尚未建立章節，開始寫作吧！</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gap: '12px' }}>
-          {chapters?.map((chapter) => (
-            <div 
-              key={chapter.id} 
-              className="card"
-              onClick={() => navigate(`/project/${id}/editor/${chapter.id}`)}
-              style={{ cursor: 'pointer', margin: 0, padding: '12px 16px' }}
-            >
-              <h3 style={{ fontSize: '16px' }}>{chapter.title}</h3>
-              <div style={{ fontSize: '12px', color: 'var(--border-color)', marginTop: '4px' }}>
-                字數: {chapter.wordCount} | {new Date(chapter.updatedAt).toLocaleDateString()}
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="chapters-list">
+            {(provided) => (
+              <div 
+                {...provided.droppableProps} 
+                ref={provided.innerRef}
+                style={{ display: 'grid', gap: '12px' }}
+              >
+                {chapters?.map((chapter, index) => (
+                  <Draggable key={chapter.id} draggableId={chapter.id} index={index}>
+                    {(provided, snapshot) => (
+                      <div 
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        className="card"
+                        onClick={() => navigate(`/project/${id}/editor/${chapter.id}`)}
+                        style={{ 
+                          ...provided.draggableProps.style,
+                          cursor: 'pointer', margin: 0, padding: '12px 16px',
+                          display: 'flex', alignItems: 'center', gap: '12px',
+                          opacity: snapshot.isDragging ? 0.8 : 1,
+                          boxShadow: snapshot.isDragging ? '0 8px 16px rgba(0,0,0,0.1)' : undefined
+                        }}
+                      >
+                        <div 
+                          {...provided.dragHandleProps} 
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ color: 'var(--border-color)', cursor: 'grab', display: 'flex', alignItems: 'center' }}
+                        >
+                          <Menu size={20} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <h3 style={{ fontSize: '16px' }}>{chapter.title}</h3>
+                          <div style={{ fontSize: '12px', color: 'var(--border-color)', marginTop: '4px' }}>
+                            字數: {chapter.wordCount} | {new Date(chapter.updatedAt).toLocaleDateString()}
+                          </div>
+                          {chapter.tags && chapter.tags.length > 0 && (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '8px' }}>
+                              {chapter.tags.map(tag => (
+                                <span key={tag} style={{ 
+                                  backgroundColor: 'rgba(59, 130, 246, 0.1)', color: 'var(--accent-color)', 
+                                  padding: '2px 8px', borderRadius: '12px', fontSize: '10px' 
+                                }}>
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
               </div>
-            </div>
-          ))}
-        </div>
+            )}
+          </Droppable>
+        </DragDropContext>
       )}
 
       {showNewDialog && (

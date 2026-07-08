@@ -32,17 +32,29 @@ export interface Inspiration {
   isProcessed: boolean;
 }
 
+export interface Character {
+  id: string;
+  projectId: string;
+  name: string;
+  role: string;
+  description: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
 export class NovelWriterDB extends Dexie {
   projects!: Table<Project>;
   chapters!: Table<Chapter>;
   inspirations!: Table<Inspiration>;
+  characters!: Table<Character>;
 
   constructor() {
     super('NovelWriterDB');
-    this.version(1).stores({
+    this.version(2).stores({
       projects: 'id, title, createdAt, updatedAt',
       chapters: 'id, projectId, volumeId, status, order',
-      inspirations: 'id, projectId, createdAt, isProcessed'
+      inspirations: 'id, projectId, createdAt, isProcessed',
+      characters: 'id, projectId, name, role'
     });
   }
 }
