@@ -30,5 +30,6 @@
     "typescript": "~6.0.2",
     "vite": "^8.1.1",
     "vite-plugin-pwa": "^1.3.0"
-  }
+  },
+  "homepage": "https://nanachi1212.github.io/lightink-pwa"
 }
