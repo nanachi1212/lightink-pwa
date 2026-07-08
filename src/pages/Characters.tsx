@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useParams, useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
-import { ArrowLeft, Plus, Users } from 'lucide-react';
+import { ArrowLeft, Plus, Users, Maximize2 } from 'lucide-react';
 import { db, type Character } from '../db';
 
 export default function Characters() {
@@ -15,6 +15,7 @@ export default function Characters() {
 
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingChar, setEditingChar] = useState<Partial<Character> | null>(null);
+  const [isFullscreenDesc, setIsFullscreenDesc] = useState(false);
 
   const handleSave = async () => {
     if (!editingChar?.name?.trim() || !projectId) return;
@@ -104,56 +105,88 @@ export default function Characters() {
           position: 'fixed', inset: 0, backgroundColor: 'var(--bg-color)',
           display: 'flex', flexDirection: 'column', zIndex: 1000
         }}>
-          <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <button onClick={() => setShowEditDialog(false)}><ArrowLeft size={24} /></button>
-              <h2 style={{ fontSize: '18px', margin: 0 }}>{editingChar.id ? '編輯角色' : '新增角色'}</h2>
-            </div>
-            <button onClick={handleSave} style={{ color: 'var(--accent-color)', fontWeight: 'bold', fontSize: '16px' }}>儲存</button>
-          </header>
-          
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--border-color)' }}>角色名稱</label>
-              <input 
-                type="text" 
-                value={editingChar.name}
-                onChange={e => setEditingChar({...editingChar, name: e.target.value})}
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)', fontSize: '16px' }}
-                placeholder="輸入角色名稱"
-              />
-            </div>
-
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--border-color)' }}>身份 / 稱號</label>
-              <input 
-                type="text" 
-                value={editingChar.role}
-                onChange={e => setEditingChar({...editingChar, role: e.target.value})}
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)', fontSize: '16px' }}
-                placeholder="例如：主角、反派、劍士"
-              />
-            </div>
-
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', marginBottom: '24px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--border-color)' }}>外貌與背景設定</label>
+          {isFullscreenDesc ? (
+            <>
+              <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <button onClick={() => setIsFullscreenDesc(false)}><ArrowLeft size={24} /></button>
+                  <h2 style={{ fontSize: '18px', margin: 0 }}>編輯外貌與背景</h2>
+                </div>
+                <button onClick={() => setIsFullscreenDesc(false)} style={{ color: 'var(--accent-color)', fontWeight: 'bold', fontSize: '16px' }}>完成</button>
+              </header>
               <textarea 
                 value={editingChar.description}
                 onChange={e => setEditingChar({...editingChar, description: e.target.value})}
-                style={{ flex: 1, width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)', fontSize: '16px', minHeight: '200px', resize: 'none' }}
+                style={{ flex: 1, width: '100%', padding: '16px', border: 'none', backgroundColor: 'var(--bg-color)', color: 'var(--text-color)', fontSize: '16px', resize: 'none', outline: 'none' }}
                 placeholder="記錄角色的外觀、性格、背景故事..."
+                autoFocus
               />
-            </div>
+            </>
+          ) : (
+            <>
+              <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <button onClick={() => setShowEditDialog(false)}><ArrowLeft size={24} /></button>
+                  <h2 style={{ fontSize: '18px', margin: 0 }}>{editingChar.id ? '編輯角色' : '新增角色'}</h2>
+                </div>
+                <button onClick={handleSave} style={{ color: 'var(--accent-color)', fontWeight: 'bold', fontSize: '16px' }}>儲存</button>
+              </header>
+              
+              <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--border-color)' }}>角色名稱</label>
+                  <input 
+                    type="text" 
+                    value={editingChar.name}
+                    onChange={e => setEditingChar({...editingChar, name: e.target.value})}
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)', fontSize: '16px' }}
+                    placeholder="輸入角色名稱"
+                  />
+                </div>
 
-            {editingChar.id && (
-              <button 
-                onClick={() => handleDelete(editingChar.id as string)} 
-                style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ef4444', color: '#ef4444', width: '100%', backgroundColor: 'transparent', fontSize: '16px' }}
-              >
-                刪除角色
-              </button>
-            )}
-          </div>
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--border-color)' }}>身份 / 稱號</label>
+                  <input 
+                    type="text" 
+                    value={editingChar.role}
+                    onChange={e => setEditingChar({...editingChar, role: e.target.value})}
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)', fontSize: '16px' }}
+                    placeholder="例如：主角、反派、劍士"
+                  />
+                </div>
+
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', marginBottom: '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <label style={{ fontSize: '14px', color: 'var(--border-color)' }}>外貌與背景設定</label>
+                    <button 
+                      onClick={() => setIsFullscreenDesc(true)}
+                      style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'var(--accent-color)' }}
+                    >
+                      <Maximize2 size={14} />
+                      全螢幕編輯
+                    </button>
+                  </div>
+                  <textarea 
+                    value={editingChar.description}
+                    onChange={e => setEditingChar({...editingChar, description: e.target.value})}
+                    onClick={() => setIsFullscreenDesc(true)}
+                    style={{ flex: 1, width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)', fontSize: '16px', minHeight: '200px', resize: 'none' }}
+                    placeholder="點擊進入全螢幕編輯..."
+                    readOnly
+                  />
+                </div>
+
+                {editingChar.id && (
+                  <button 
+                    onClick={() => handleDelete(editingChar.id as string)} 
+                    style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ef4444', color: '#ef4444', width: '100%', backgroundColor: 'transparent', fontSize: '16px' }}
+                  >
+                    刪除角色
+                  </button>
+                )}
+              </div>
+            </>
+          )}
         </div>
       )}
 
